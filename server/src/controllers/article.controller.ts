@@ -55,16 +55,35 @@ class ArticleController {
       in: 'query',
       description: 'Count of elements for page',
       type: 'number'
+    }
+    #swagger.parameters['filter'] = {
+      in: 'query',
+      description: 'Filter by title',
+      type: 'string'
+    }
+    #swagger.parameters['sort'] = {
+      in: 'query',
+      description: 'Sort ascending/descending by pubDate',
+      type: 'string',
+      enum: ['1', '-1']
     } 
     */
-    const pageNo = +req.params.page || 1;
-    const size = +req.params.perPage || 10;
-    const query: { skip?: number; limit?: number } = {};
-    query.skip = size * (pageNo - 1);
-    query.limit = +size;
+    const pageNo = +(req.query.page || 1);
+    const size = +(req.query.perPage || 10);
+    const filter: any = req.query.filter;
+    const sort: any = +(req.query.sort || 1);
 
-    const articles = await Article.find({}, {}, query).sort('-pubDate');
+    const skip = size * (pageNo - 1);
+    const limit = +size;
 
+    const cursor = await Article.find(
+      filter ? { $text: { $search: filter } } : {},
+    )
+      .sort({ pubDate: sort })
+      .limit(limit)
+      .skip(skip);
+
+    const totalPages = Math.ceil(cursor.length / size);
     /* 
       #swagger.responses[200] = {
           description: 'Fetch articles',
@@ -72,13 +91,16 @@ class ArticleController {
             articles: {
               $ref: '#/components/schemas/ArticleArray'
             },
-            msg: 'All Articles have been fetched!'
+            msg: 'All Articles have been fetched!',
+            totalPages: 0
           } 
         }
      */
-    res
-      .status(StatusCodes.OK)
-      .json({ articles, msg: 'All Articles have been fetched!' });
+    res.status(StatusCodes.OK).json({
+      articles: cursor,
+      msg: 'All Articles have been fetched!',
+      totalPages,
+    });
   };
 
   getSingleArticle = async (req: Request, res: Response) => {

@@ -12,6 +12,7 @@ export const ArticleSchema = new Schema<IArticle>(
     title: {
       type: String,
       required: [true, 'Title should not be empty!'],
+      index: true,
     },
     link: {
       type: String,
@@ -26,6 +27,8 @@ export const ArticleSchema = new Schema<IArticle>(
   { timestamps: true },
 );
 
+ArticleSchema.index({ title: 'text' });
+
 export const articleCreateSchema = object({
   body: object({
     title: string({
@@ -38,3 +41,4 @@ export const articleCreateSchema = object({
 });
 
 export const Article = model<IArticle>('Article', ArticleSchema);
+Article.createIndexes();

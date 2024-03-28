@@ -1,3 +1,6 @@
+const dotenv = require('dotenv');
+dotenv.config();
+
 /* Swagger configuration */
 const options = {
   openapi: 'OpenAPI 3', // Enable/Disable OpenAPI. By default is null
@@ -9,6 +12,7 @@ const options = {
 };
 
 const swaggerAutogen = require('swagger-autogen')({ openapi: '3.0.0' });
+const { BASE_URL, VERSION } = process.env;
 
 const doc = {
   info: {
@@ -20,7 +24,7 @@ const doc = {
     },
   },
   host: 'localhost:8000',
-  basePath: '/', // by default: '/'
+  basePath: `/${BASE_URL}/${VERSION}`, // by default: '/'
   schemes: ['http'], // by default: ['http']
   consumes: ['application/json'], // by default: ['application/json']
   produces: ['application/json'], // by default: ['application/json']
@@ -166,6 +170,9 @@ const doc = {
 };
 
 const outputFile = './docs/swagger.json';
-const endpointsFiles = ['./server.ts', './controllers/*.controller.ts'];
+const endpointsFiles = [
+  './routes/index.routes.ts',
+  './controllers/*.controller.ts',
+];
 
 swaggerAutogen(outputFile, endpointsFiles, doc);
