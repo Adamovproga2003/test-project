@@ -1,7 +1,8 @@
 import express, { Express } from 'express';
 import dotenv from 'dotenv';
 import connectDB from './configs/db.config';
-
+import cors from 'cors';
+import morgan from 'morgan';
 import parse from './helpers/parser';
 import appRoutes from './routes/index.routes';
 
@@ -18,6 +19,10 @@ const app: Express = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(
+  morgan(':method :url :status :res[content-length] - :response-time ms'),
+);
+app.use(cors());
 
 app.use(`${SERVER_URL}`, appRoutes);
 

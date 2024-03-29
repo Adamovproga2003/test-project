@@ -1,5 +1,4 @@
 :root {
-  --background-color: #fafafa;
 }
 
 * {
@@ -12,10 +11,6 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-}
-
-body {
-  background-color: var(--background-color);
 }
 
 a {

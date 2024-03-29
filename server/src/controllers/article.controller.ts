@@ -83,7 +83,13 @@ class ArticleController {
       .limit(limit)
       .skip(skip);
 
-    const totalPages = Math.ceil(cursor.length / size);
+    let totalPages;
+    if (req.query.filter) {
+      totalPages = Math.ceil(cursor.length / size);
+    } else {
+      const count = await Article.countDocuments();
+      totalPages = Math.ceil(+count / size);
+    }
     /* 
       #swagger.responses[200] = {
           description: 'Fetch articles',
