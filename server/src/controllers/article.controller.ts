@@ -71,7 +71,7 @@ class ArticleController {
     const pageNo = +(req.query.page || 1);
     const size = +(req.query.perPage || 10);
     const filter: any = req.query.filter;
-    const sort: any = +(req.query.sort || 1);
+    const sort: any = +(req.query.sort || -1);
 
     const skip = size * (pageNo - 1);
     const limit = +size;

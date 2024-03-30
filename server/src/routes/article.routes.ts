@@ -17,7 +17,7 @@ router
 
 router
   .route('/:id')
-  .get(articleController.getSingleArticle)
+  .get(verifyToken, articleController.getSingleArticle)
   .patch(verifyToken, articleController.updateArticle)
   .delete(verifyToken, articleController.deleteArticle);
 

@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-interface verifiedRequest extends Request {
+export interface verifiedRequest extends Request {
   userId?: string;
 }
 
@@ -17,6 +17,7 @@ export function verifyToken(
       .status(StatusCodes.UNAUTHORIZED)
       .json({ error: 'Access denied' });
   const token = authHeader.split(' ')[1];
+  console.log('TOKEN', token);
   try {
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET_KEY || '');
     req.userId = decoded.userId;

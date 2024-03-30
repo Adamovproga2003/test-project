@@ -5,7 +5,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import parse from './helpers/parser';
 import appRoutes from './routes/index.routes';
-
+import cookieParser from 'cookie-parser';
 dotenv.config();
 
 const { MONGO_USERNAME, MONGO_PASSWORD, RSS_URL, BASE_URL, VERSION } =
@@ -22,7 +22,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(
   morgan(':method :url :status :res[content-length] - :response-time ms'),
 );
-app.use(cors());
+
+var corsOptions = {
+  credentials: true,
+  origin: 'http://localhost:3000',
+};
+
+app.use(cors(corsOptions));
+app.use(cookieParser());
 
 app.use(`${SERVER_URL}`, appRoutes);
 
