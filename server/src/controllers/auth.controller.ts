@@ -9,6 +9,11 @@ class UserController {
     // #swagger.tags = ['Authorization']
     // #swagger.summary = 'Register user for access to admin panel.'
     // #swagger.description = 'Register user with username and password.'
+    /* 
+    #swagger.security = [{
+      "bearerAuth": []
+    }] 
+    */
     /*  
         #swagger.requestBody = {
             content: {

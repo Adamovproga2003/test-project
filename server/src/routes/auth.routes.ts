@@ -8,7 +8,7 @@ const router = express.Router();
 
 router
   .route('/register')
-  .post(validateData(userAuthSchema), userController.register);
+  .post(verifyToken, validateData(userAuthSchema), userController.register);
 
 router.route('/login').post(validateData(userAuthSchema), userController.login);
 router.route('/me').get(verifyToken, userController.me);
