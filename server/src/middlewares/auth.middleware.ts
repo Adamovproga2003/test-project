@@ -17,7 +17,6 @@ export function verifyToken(
       .status(StatusCodes.UNAUTHORIZED)
       .json({ error: 'Access denied' });
   const token = authHeader.split(' ')[1];
-  console.log('TOKEN', token);
   try {
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET_KEY || '');
     req.userId = decoded.userId;

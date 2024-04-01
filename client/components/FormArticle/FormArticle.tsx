@@ -5,19 +5,13 @@ import {
 } from "@/hooks/useArticles";
 import { Article, ErrorField, initialValues } from "@/types";
 import { compareObjects } from "@/utils/compareObjects";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import { StaticDateTimePicker } from "@mui/x-date-pickers";
 import { Formik } from "formik";
-import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import * as yup from "yup";
+import OverlayLoader from "../OverlayLoader/OverlayLoader";
 
 type Props = {
   initialValues?: Article;
@@ -29,7 +23,7 @@ const validationSchema = yup.object({
     .string()
     .required("Link is required")
     .matches(
-      /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+      /(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?\/[a-zA-Z0-9]{2,}|((https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z]{2,}(\.[a-zA-Z]{2,})(\.[a-zA-Z]{2,})?)|(https:\/\/www\.|http:\/\/www\.|https:\/\/|http:\/\/)?[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}\.[a-zA-Z0-9]{2,}(\.[a-zA-Z0-9]{2,})?/g,
       "Enter correct url"
     ),
   pubDate: yup.string(),
@@ -55,41 +49,11 @@ const FormArticle = ({ initialValues }: Props) => {
 
   return (
     <Box sx={{ position: "relative" }}>
-      <AnimatePresence mode="wait">
-        {(updateLoading || deleteLoading) && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <Box
-              sx={{
-                top: "0%",
-                left: "0%",
-                position: "absolute",
-                bgcolor: "rgba(255, 255, 255, 0.5)",
-                width: "100%",
-                height: "100%",
-                zIndex: 1,
-              }}
-            >
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                }}
-              >
-                <CircularProgress />
-              </Box>
-            </Box>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {(createLoading || updateLoading || deleteLoading) && <OverlayLoader />}
       <Formik
         initialValues={formValues}
         validationSchema={validationSchema}
-        onSubmit={async (values, { setFieldError, setSubmitting }) => {
+        onSubmit={async (values, { setFieldError }) => {
           if (initialValues) {
             const onSuccess = (values: initialValues) => {
               window.scrollTo(0, 0);
@@ -161,6 +125,7 @@ const FormArticle = ({ initialValues }: Props) => {
             <StaticDateTimePicker
               value={new Date(values.pubDate)}
               onChange={(value) => setFieldValue("pubDate", value, true)}
+              maxDate={new Date()}
             />
             <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
               <Button
@@ -176,11 +141,7 @@ const FormArticle = ({ initialValues }: Props) => {
                 type="submit"
                 variant="contained"
                 sx={{ mt: 3, mb: 2, width: "fit-content" }}
-                disabled={
-                  !isValid ||
-                  compareObjects(formValues, values) ||
-                  createLoading
-                }
+                disabled={!isValid || compareObjects(formValues, values)}
               >
                 Save
               </Button>

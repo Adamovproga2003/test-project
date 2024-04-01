@@ -18,7 +18,6 @@ export async function middleware(request: NextRequest) {
     )
       .then((res) => res.json())
       .catch((err) => console.error(err));
-    console.log("res", res);
     if (!res || res.errors || res.error) {
       isAuthenticated = false;
     }

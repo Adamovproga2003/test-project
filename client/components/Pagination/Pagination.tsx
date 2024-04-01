@@ -1,5 +1,5 @@
 import { Pagination } from "@mui/material";
-import React, { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, ChangeEvent } from "react";
 
 type Props = {
   totalCount: number;
@@ -8,7 +8,7 @@ type Props = {
 };
 
 const Paginator = ({ totalCount, page, callback }: Props) => {
-  const handleChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handleChange = (event: ChangeEvent<unknown>, value: number) => {
     callback(value);
   };
 
