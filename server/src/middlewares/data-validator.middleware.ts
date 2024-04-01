@@ -15,6 +15,7 @@ export function validateData(schema: z.ZodObject<any, any>) {
     } catch (error) {
       if (error instanceof ZodError) {
         const errorMessages = error.errors.map((issue: any) => ({
+          field: issue.validation,
           message: issue.message,
         }));
         res

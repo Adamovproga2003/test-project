@@ -11,33 +11,35 @@ import LinkIcon from "@mui/icons-material/Link";
 import dateFormat from "dateformat";
 import { useRouter } from "next/router";
 import EditIcon from "@mui/icons-material/Edit";
-import { Article } from "@/types";
+import { Article, DeleteArticleDto } from "@/types";
 import DeleteIcon from "@mui/icons-material/Delete";
 import styles from "./Item.module.scss";
-import { useQueryClient } from "react-query";
-import axios from "axios";
+import { UseMutateFunction, useQueryClient } from "react-query";
 
 type Props = {
   item: Article;
+  mutate: UseMutateFunction<void, unknown, DeleteArticleDto, unknown>;
 };
 
-const Item = ({ item }: Props) => {
+const Item = ({ item, mutate }: Props) => {
   const router = useRouter();
   const { isAuth } = useAuth();
   const [isHoverEdit, setHoverEdit] = useState(false);
   const queryClient = useQueryClient();
 
-  const handleDelete = async (e: MouseEvent<HTMLButtonElement>, id: string) => {
+  const handleDelete = async (
+    e: MouseEvent<HTMLButtonElement>,
+    _id: string
+  ) => {
     e.stopPropagation();
-    await axios
-      .delete(`${process.env.NEXT_PUBLIC_API_URL}/articles/${id}`)
-      .then(() => queryClient.invalidateQueries(["articles"]))
-      .catch((error) => console.error(error));
+    const onSuccess = async () =>
+      await queryClient.invalidateQueries(["articles"]);
+    mutate({ _id, onSuccess });
   };
 
-  const handleEdit = (e: MouseEvent<HTMLButtonElement>, id: string) => {
+  const handleEdit = (e: MouseEvent<HTMLButtonElement>, _id: string) => {
     e.stopPropagation();
-    router.push(`/edit/${id}`);
+    router.push(`/edit/${_id}`);
   };
 
   return (

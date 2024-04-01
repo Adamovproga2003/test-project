@@ -1,4 +1,10 @@
-import { Article } from "@/types";
+import {
+  useCreateArticle,
+  useDeleteArticle,
+  useUpdateArticle,
+} from "@/hooks/useArticles";
+import { Article, ErrorField, initialValues } from "@/types";
+import { compareObjects } from "@/utils/compareObjects";
 import {
   Box,
   Button,
@@ -7,7 +13,6 @@ import {
   Typography,
 } from "@mui/material";
 import { StaticDateTimePicker } from "@mui/x-date-pickers";
-import axios from "axios";
 import { Formik } from "formik";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/router";
@@ -15,57 +20,43 @@ import { useState } from "react";
 import * as yup from "yup";
 
 type Props = {
-  initialValues: Article;
-};
-
-type ResponseEditArticleDto = {
-  msg: string;
-  article: Article;
-};
-
-type ResponseDeleteArticleDto = {
-  msg: string;
+  initialValues?: Article;
 };
 
 const validationSchema = yup.object({
   title: yup.string().required("Title is required"),
   link: yup
     .string()
-    // .min(8, "Password should be of minimum 8 characters length")
-    .required("Link is required"),
+    .required("Link is required")
+    .matches(
+      /((https?):\/\/)?(www.)?[a-z0-9]+(\.[a-z]{2,}){1,3}(#?\/?[a-zA-Z0-9#]+)*\/?(\?[a-zA-Z0-9-_]+=[a-zA-Z0-9-%]+&?)?$/,
+      "Enter correct url"
+    ),
   pubDate: yup.string(),
 });
 
-const FormArticle = ({
-  initialValues: { title, link, pubDate, _id },
-}: Props) => {
-  const dataValues = { title, link, pubDate };
+const FormArticle = ({ initialValues }: Props) => {
+  const dataValues = {
+    title: initialValues?.title || "",
+    link: initialValues?.link || "",
+    pubDate: initialValues?.pubDate || new Date().toDateString(),
+  };
   const [formValues, setFormValues] = useState(dataValues);
-  const [isLoading, setLoading] = useState(false);
   const router = useRouter();
 
+  const { isLoading: createLoading, mutate: mutateCreate } = useCreateArticle();
+  const { isLoading: updateLoading, mutate: mutateUpdate } = useUpdateArticle();
+  const { isLoading: deleteLoading, mutate: mutateDelete } = useDeleteArticle();
+
   const handleDelete = async () => {
-    const data = await axios
-      .delete<ResponseDeleteArticleDto>(
-        `${process.env.NEXT_PUBLIC_API_URL}/articles/${_id}`
-      )
-      .then((response) => {
-        return response.data;
-      })
-      .catch((error) => {
-        console.error(error);
-        return null;
-      })
-      .finally(() => setLoading(false));
-    if (data) {
-      router.push("/");
-    }
+    const onSuccess = () => router.push("/");
+    mutateDelete({ _id: initialValues?._id || "", onSuccess });
   };
 
   return (
     <Box sx={{ position: "relative" }}>
       <AnimatePresence mode="wait">
-        {isLoading && (
+        {(updateLoading || deleteLoading) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -98,31 +89,29 @@ const FormArticle = ({
       <Formik
         initialValues={formValues}
         validationSchema={validationSchema}
-        onSubmit={async (values, actions) => {
-          window.scrollTo(0, 0);
-          setLoading(true);
-          const data = await axios
-            .patch<ResponseEditArticleDto>(
-              `${process.env.NEXT_PUBLIC_API_URL}/articles/${_id}`,
-              {
-                title: values.title,
-                link: values.link,
-                pubDate: values.pubDate,
-              }
-            )
-            .then((response) => {
-              return response.data;
-            })
-            .catch((error) => {
-              return null;
-            })
-            .finally(() => setLoading(false));
-          if (data) {
-            setFormValues({
-              title: data.article.title,
-              link: data.article.link,
-              pubDate: data.article.pubDate,
-            });
+        onSubmit={async (values, { setFieldError, setSubmitting }) => {
+          if (initialValues) {
+            const onSuccess = (values: initialValues) => {
+              window.scrollTo(0, 0);
+              setFormValues(values);
+            };
+            mutateUpdate({ values, _id: initialValues?._id || "", onSuccess });
+          } else {
+            const onSuccess = (_id: string) => {
+              window.scrollTo(0, 0);
+              router.push(`/edit/${_id}`);
+            };
+            const onError = (details: ErrorField[]) => {
+              window.scrollTo(0, 0);
+              setFormValues(values);
+              details.forEach((detail) => {
+                setFieldError(
+                  detail.field === "url" ? "link" : detail.field,
+                  detail.message
+                );
+              });
+            };
+            mutateCreate({ values, onSuccess, onError });
           }
         }}
       >
@@ -137,9 +126,10 @@ const FormArticle = ({
           setFieldValue,
         }) => (
           <form onSubmit={handleSubmit}>
-            <>{console.log(dataValues)}</>
-            <>{console.log(values)}</>
-            <Typography variant="h3">Edit Form</Typography>
+            {initialValues && <Typography variant="h3">Edit Form</Typography>}
+            {!initialValues && (
+              <Typography variant="h3">Create Form</Typography>
+            )}
             <TextField
               margin="normal"
               required
@@ -148,7 +138,6 @@ const FormArticle = ({
               placeholder="Title"
               name="title"
               autoComplete="title"
-              autoFocus
               value={values.title}
               onChange={handleChange}
               onBlur={handleBlur}
@@ -175,7 +164,7 @@ const FormArticle = ({
             />
             <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
               <Button
-                type="submit"
+                type="button"
                 variant="contained"
                 sx={{ mt: 3, mb: 2, width: "fit-content" }}
                 color="primary"
@@ -189,31 +178,22 @@ const FormArticle = ({
                 sx={{ mt: 3, mb: 2, width: "fit-content" }}
                 disabled={
                   !isValid ||
-                  JSON.stringify(formValues) === JSON.stringify(values)
+                  compareObjects(formValues, values) ||
+                  createLoading
                 }
               >
                 Save
               </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                sx={{ mt: 3, mb: 2, width: "fit-content" }}
-                disabled={
-                  !isValid ||
-                  JSON.stringify(formValues) === JSON.stringify(values)
-                }
-                onClick={() => router.push("/")}
-              >
-                Save and Exit
-              </Button>
-              <Button
-                variant="contained"
-                sx={{ mt: 3, mb: 2, width: "fit-content" }}
-                onClick={handleDelete}
-                color="error"
-              >
-                Delete
-              </Button>
+              {initialValues && (
+                <Button
+                  variant="contained"
+                  sx={{ mt: 3, mb: 2, width: "fit-content" }}
+                  onClick={handleDelete}
+                  color="error"
+                >
+                  Delete
+                </Button>
+              )}
             </Box>
           </form>
         )}

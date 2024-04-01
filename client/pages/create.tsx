@@ -1,22 +1,17 @@
 import AppAppBar from "@/components/AppAppBar/AppAppBar";
 import FormArticle from "@/components/FormArticle/FormArticle";
-import { useSingleArticle } from "@/hooks/useArticles";
+import { useCreateArticle } from "@/hooks/useArticles";
 import { Alert, Box, CircularProgress, Container } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/router";
+import React from "react";
 
 type Props = {
   mode: "light" | "dark";
   toggleColorMode: () => void;
 };
 
-export default function EditPage({ mode, toggleColorMode }: Props) {
-  const router = useRouter();
-  const articleID = router.query.id;
-
-  const { data, isLoading, isError, error } = useSingleArticle({
-    _id: articleID,
-  });
+export default function CreatePage({ mode, toggleColorMode }: Props) {
+  const { isLoading, isError, error } = useCreateArticle();
 
   const errorMessage =
     isError && error instanceof Error
@@ -29,24 +24,22 @@ export default function EditPage({ mode, toggleColorMode }: Props) {
       <Box sx={{ bgcolor: "background.default" }}>
         <Container sx={{ marginTop: "100px" }}>
           <AnimatePresence mode="wait">
-            {!isLoading && data && data.article && (
+            {!error && !isLoading && (
               <motion.div
-                key={"article" + articleID}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                <FormArticle initialValues={data.article} />
+                <FormArticle />
               </motion.div>
             )}
-            {isError && (
+            {error && (
               <Alert variant="filled" severity="error">
                 {errorMessage}
               </Alert>
             )}
             {isLoading && (
               <motion.div
-                key={"loader" + articleID}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}

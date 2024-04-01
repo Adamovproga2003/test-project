@@ -1,5 +1,4 @@
 import { ReactNode, createContext, useContext, useState } from "react";
-import { cookies } from "next/headers";
 
 type authContextType = {
   isAuth: boolean;
@@ -32,7 +31,7 @@ type Props = {
 };
 
 export function AuthProvider({ children, values }: Props) {
-  const [isAuth, setAuth] = useState<boolean>(values?.isAuth || false);
+  const [isAuth, setAuth] = useState(!!values?.isAuth);
   const [username, setUsername] = useState<string | undefined>(
     values?.username || undefined
   );

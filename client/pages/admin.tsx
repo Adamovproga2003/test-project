@@ -1,38 +1,20 @@
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
-import CssBaseline from "@mui/material/CssBaseline";
 import TextField from "@mui/material/TextField";
 import Link from "@mui/material/Link";
 import Box from "@mui/material/Box";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import getLPTheme from "@/theme";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import axios from "axios";
 import { useRouter } from "next/router";
+import { useLogin } from "@/hooks/useAuth";
+import { useAuth } from "@/context/AuthContext";
+import { Alert, CircularProgress } from "@mui/material";
+import { AxiosError } from "axios";
+import Copyright from "@/components/Copyright/Copyright";
 
-function Copyright(props: any) {
-  return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      align="center"
-      {...props}
-    >
-      {"Copyright © "}
-      <Link color="inherit" href="/">
-        Your Website
-      </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
-    </Typography>
-  );
-}
-
-const LPtheme = createTheme(getLPTheme("light"));
 const validationSchema = yup.object({
   username: yup.string().required("Username is required"),
   password: yup
@@ -41,13 +23,17 @@ const validationSchema = yup.object({
     .required("Password is required"),
 });
 
-type ResponseLoginDto = {
-  msg: string;
-  token: string;
-};
-
 export default function Admin() {
   const router = useRouter();
+
+  const { isLoading, mutate, isError, error } = useLogin();
+  const { onChangeAuth, onChangeUsername } = useAuth();
+
+  const errorMessage =
+    isError && error instanceof AxiosError
+      ? error?.response?.data.error
+      : "An unknown error occurred";
+
   const formik = useFormik({
     initialValues: {
       username: "",
@@ -55,35 +41,18 @@ export default function Admin() {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      const data = await axios
-        .post<ResponseLoginDto>(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
-          {
-            username: values.username,
-            password: values.password,
-          },
-          {
-            withCredentials: true,
-          }
-        )
-        .then((response) => {
-          console.log("response", response);
-          return response.data;
-        })
-        .catch((error) => {
-          console.error(error);
-          return null;
-        });
-      if (data) {
-        window.location.replace("/");
-      }
+      const onSuccess = (username: string) => {
+        router.push("/");
+        onChangeAuth(true);
+        onChangeUsername(username);
+      };
+      mutate({ ...values, onSuccess });
     },
   });
 
   return (
-    <ThemeProvider theme={LPtheme}>
+    <>
       <Container component="main" maxWidth="xs">
-        <CssBaseline />
         <Box
           sx={{
             marginTop: 8,
@@ -129,18 +98,26 @@ export default function Admin() {
               error={formik.touched.password && Boolean(formik.errors.password)}
               helperText={formik.touched.password && formik.errors.password}
             />
+
+            {isError && (
+              <Alert variant="filled" severity="error">
+                {errorMessage}
+              </Alert>
+            )}
+
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={isLoading}
             >
-              Sign In
+              {isLoading ? <CircularProgress /> : "Sign In"}
             </Button>
           </form>
         </Box>
         <Copyright sx={{ mt: 2, mb: 2 }} />
       </Container>
-    </ThemeProvider>
+    </>
   );
 }

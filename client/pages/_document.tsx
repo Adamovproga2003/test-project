@@ -24,10 +24,14 @@ export default function MyDocument(
           name="theme-color"
           content={getDesignTokens("dark").palette.primary.main}
         />
-        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="icon" href="/images/favicon.ico" sizes="any" />
         <meta name="emotion-insertion-point" content="" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          cross-origin={true}
+        />
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
           rel="stylesheet"
@@ -37,6 +41,12 @@ export default function MyDocument(
       <body>
         <Main />
         <NextScript />
+        <div id="globalLoader">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif"
+            alt=""
+          />
+        </div>
       </body>
     </Html>
   );

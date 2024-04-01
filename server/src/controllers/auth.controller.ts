@@ -137,8 +137,17 @@ class UserController {
           } 
         }
      */
+
+      const expiredDate = new Date();
+      expiredDate.setHours(expiredDate.getHours() + 1);
+
       res
-        .cookie('token', token, { httpOnly: true })
+        .cookie('token', token, {
+          expires: expiredDate,
+          httpOnly: true,
+          sameSite: 'none',
+          secure: true,
+        })
         .status(StatusCodes.OK)
         .json({ msg: 'Login successfully!' });
     } catch (error) {

@@ -114,12 +114,25 @@ class ArticleController {
     // #swagger.summary = 'Get single articles'
     // #swagger.description = 'Get single article from DB'
     const { id } = req.params;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/))
+      /* 
+        #swagger.responses[404] = { 
+          description: 'Article was not found', 
+          schema: { 
+            error: 'Article was not found!'
+          } 
+        } 
+        */
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ error: 'Article was not found!' });
     const article = await Article.findById({ _id: id });
 
     if (!article) {
       /* 
         #swagger.responses[400] = { 
-          description: 'Article is not found', 
+          description: 'Article was not found', 
           schema: { 
             error: 'Requested article not found!'
           } 
