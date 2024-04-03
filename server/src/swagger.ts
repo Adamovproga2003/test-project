@@ -3,12 +3,10 @@ dotenv.config();
 
 /* Swagger configuration */
 const options = {
-  openapi: 'OpenAPI 3', // Enable/Disable OpenAPI. By default is null
-  language: 'en-US', // Change response language. By default is 'en-US'
-  disableLogs: false, // Enable/Disable logs. By default is false
-  autoHeaders: false, // Enable/Disable automatic headers capture. By default is true
-  autoQuery: false, // Enable/Disable automatic query capture. By default is true
-  autoBody: false, // Enable/Disable automatic body capture. By default is true
+  openapi: 'OpenAPI 3',
+  autoHeaders: false,
+  autoQuery: false,
+  autoBody: false,
 };
 
 const swaggerAutogen = require('swagger-autogen')({ openapi: '3.0.0' });
@@ -24,10 +22,7 @@ const doc = {
     },
   },
   host: 'localhost:8000',
-  basePath: `/${BASE_URL}/${VERSION}`, // by default: '/'
-  schemes: ['http'], // by default: ['http']
-  consumes: ['application/json'], // by default: ['application/json']
-  produces: ['application/json'], // by default: ['application/json']
+  basePath: `/${BASE_URL}/${VERSION}`,
   tags: [],
   components: {
     schemas: {

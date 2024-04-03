@@ -20,8 +20,7 @@ export const ArticleSchema = new Schema<IArticle>(
     },
     pubDate: {
       type: Date,
-      required: [true, 'Publish date should not be empty!'],
-      default: new Date(+new Date() + 7 * 24 * 60 * 60 * 1000),
+      default: new Date(),
     },
   },
   { timestamps: true },
